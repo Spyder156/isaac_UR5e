@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+import logging
 
 RWM_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, RWM_ROOT)
@@ -20,6 +21,7 @@ parser.add_argument("--system_dynamics_load_path", type=str, default=None, help=
 parser.add_argument("--video", action="store_true", help="Record training videos")
 parser.add_argument("--video_interval", type=int, default=2000, help="Video recording interval")
 parser.add_argument("--video_length", type=int, default=200, help="Video length in steps")
+parser.add_argument("--quiet", "-q", action="store_true", help="Use progress bar instead of verbose output")
 
 # Add AppLauncher args (--headless, etc.)
 AppLauncher.add_app_launcher_args(parser)
@@ -37,6 +39,9 @@ simulation_app = app_launcher.app
 import gymnasium as gym
 import torch
 from datetime import datetime
+from tqdm import tqdm
+import io
+import re
 
 from rsl_rl.runners import OnPolicyRunner, MBPOOnPolicyRunner
 
@@ -57,6 +62,52 @@ torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
 torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = False
+
+
+class ProgressBarLogger:
+    """Redirect verbose training output to file with tqdm progress bar."""
+    
+    def __init__(self, log_file: str, max_iterations: int):
+        self.log_file = open(log_file, 'w')
+        self.pbar = tqdm(total=max_iterations, desc="Training", unit="iter",
+                        bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}] {postfix}")
+        self.last_reward = 0.0
+        self.last_ep_len = 0.0
+        self._stdout = sys.stdout
+        self._iteration_pattern = re.compile(r'Learning iteration (\d+)/(\d+)')
+        self._reward_pattern = re.compile(r"Mean reward:\s+([\d.]+)")
+        self._ep_len_pattern = re.compile(r"Mean episode length:\s+([\d.]+)")
+    
+    def write(self, text):
+        # Write everything to log file
+        self.log_file.write(text)
+        self.log_file.flush()
+        
+        # Parse for progress updates
+        iter_match = self._iteration_pattern.search(text)
+        if iter_match:
+            current = int(iter_match.group(1))
+            self.pbar.n = current
+            self.pbar.refresh()
+        
+        reward_match = self._reward_pattern.search(text)
+        if reward_match:
+            self.last_reward = float(reward_match.group(1))
+        
+        ep_len_match = self._ep_len_pattern.search(text)
+        if ep_len_match:
+            self.last_ep_len = float(ep_len_match.group(1))
+        
+        if reward_match or ep_len_match:
+            self.pbar.set_postfix(reward=f"{self.last_reward:.1f}", ep_len=f"{self.last_ep_len:.0f}")
+    
+    def flush(self):
+        self.log_file.flush()
+    
+    def close(self):
+        self.pbar.close()
+        self.log_file.close()
+        sys.stdout = self._stdout
 
 
 def main():
@@ -134,7 +185,21 @@ def main():
         runner.load(args_cli.checkpoint)
     
     print(f"[INFO] Starting training for {agent_cfg.max_iterations} iterations")
-    runner.learn(num_learning_iterations=agent_cfg.max_iterations, init_at_random_ep_len=True)
+    
+    # Quiet mode: use progress bar instead of verbose output
+    progress_logger = None
+    if args_cli.quiet:
+        log_file_path = os.path.join(log_dir, "training.log")
+        print(f"[INFO] Quiet mode: verbose output → {log_file_path}")
+        os.makedirs(log_dir, exist_ok=True)
+        progress_logger = ProgressBarLogger(log_file_path, agent_cfg.max_iterations)
+        sys.stdout = progress_logger
+    
+    try:
+        runner.learn(num_learning_iterations=agent_cfg.max_iterations, init_at_random_ep_len=True)
+    finally:
+        if progress_logger:
+            progress_logger.close()
     
     env.close()
 
