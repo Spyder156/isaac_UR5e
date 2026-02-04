@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rwm-ur5e"
+version = "0.1.0"
+description = "RWM (Robotic World Model) for UR5e reach task"
+readme = "RWM_PLAN.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest", "black", "isort"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["rwm_ur5e*", "envs*", "configs*", "mdp*", "scripts*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.yaml", "*.md"]

@@ -1,0 +1,89 @@
+FROM nvcr.io/nvidia/isaac-sim:5.1.0
+
+SHELL ["/bin/bash", "-c"]
+
+LABEL maintainer="Raghav"
+LABEL description="Isaac Sim 5.1 + Isaac Lab + RWM for UR5e robot training"
+
+ENV LANG=C.UTF-8
+ENV DEBIAN_FRONTEND=noninteractive
+ENV ACCEPT_EULA=Y
+ENV PRIVACY_CONSENT=Y
+ENV OMNI_KIT_ACCEPT_EULA=YES
+
+ENV ISAACSIM_PATH=/isaac-sim
+ENV ISAACLAB_PATH=/workspace/IsaacLab
+ENV RWM_PATH=/workspace
+
+# Disable Steam Vulkan layers that cause hangs
+ENV DISABLE_VK_LAYER_VALVE_steam_fossilize_1=1
+ENV DISABLE_VK_LAYER_VALVE_steam_overlay_1=1
+
+ENV DISPLAY=${DISPLAY:-:0}
+ENV QT_X11_NO_MITSHM=1
+
+USER root
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    cmake \
+    git \
+    wget \
+    curl \
+    vim \
+    libglib2.0-0 \
+    libgl1 \
+    libglx-mesa0 \
+    libxrender1 \
+    libxext6 \
+    libsm6 \
+    x11-apps \
+    mesa-utils \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
+
+COPY IsaacLab ${ISAACLAB_PATH}
+
+RUN ln -sf ${ISAACSIM_PATH} ${ISAACLAB_PATH}/_isaac_sim
+
+ENV TERM=xterm
+
+RUN chmod +x ${ISAACLAB_PATH}/isaaclab.sh && \
+    ${ISAACLAB_PATH}/isaaclab.sh --install
+
+# Copy RSL-RL RWM fork
+COPY rsl_rl_rwm /workspace/rsl_rl_rwm
+
+# Install RSL-RL in editable mode
+RUN ${ISAACLAB_PATH}/_isaac_sim/python.sh -m pip install -e /workspace/rsl_rl_rwm
+
+# Copy RWM UR5e environment
+COPY rwm_ur5e /workspace/rwm_ur5e
+
+# Install RWM UR5e in editable mode
+RUN ${ISAACLAB_PATH}/_isaac_sim/python.sh -m pip install -e /workspace/rwm_ur5e
+
+RUN ${ISAACLAB_PATH}/_isaac_sim/python.sh -m pip install \
+    tensorboard \
+    tensorboardX \
+    matplotlib \
+    scipy
+
+RUN mkdir -p /workspace/logs \
+    && mkdir -p /root/.cache/nvidia/GLCache \
+    && mkdir -p /root/.nv/ComputeCache \
+    && mkdir -p /root/.nvidia-omniverse/logs
+
+EXPOSE 6006
+
+RUN echo 'alias python="${ISAACLAB_PATH}/_isaac_sim/python.sh"' >> /root/.bashrc && \
+    echo 'alias pip="${ISAACLAB_PATH}/_isaac_sim/python.sh -m pip"' >> /root/.bashrc && \
+    echo 'alias isaaclab="${ISAACLAB_PATH}/isaaclab.sh"' >> /root/.bashrc && \
+    echo 'alias train="cd /workspace/rwm_ur5e && ${ISAACLAB_PATH}/_isaac_sim/python.sh scripts/train.py"' >> /root/.bashrc && \
+    echo 'alias tensorboard="${ISAACLAB_PATH}/_isaac_sim/python.sh -m tensorboard.main"' >> /root/.bashrc
+
+WORKDIR /workspace/rwm_ur5e
+
+CMD ["/bin/bash"]
