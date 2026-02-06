@@ -23,7 +23,8 @@
     physical_parameters_file="$(find ur_description)/config/ur5e/physical_parameters.yaml"
     visual_parameters_file="$(find ur_description)/config/ur5e/visual_parameters.yaml"
   >
-    <origin xyz="0 0 0.45" rpy="0 0 0"/>
+    <!-- Table top is at z=0.425 (table center 0.4 + half height 0.025) -->
+    <origin xyz="0 0 0.425" rpy="0 0 0"/>
   </xacro:ur_robot>
 
   <!-- ============================================================ -->
@@ -243,18 +244,18 @@
   <xacro:property name="socket_width" value="0.012"/>   <!-- 12mm wide -->
   <xacro:property name="socket_height" value="0.004"/>  <!-- 4mm tall (thin) -->
   <xacro:property name="socket_depth" value="0.015"/>   <!-- 15mm deep -->
-  <xacro:property name="board_tilt" value="0.5"/>       <!-- ~29 degrees tilt -->
+  <xacro:property name="board_tilt" value="0.3"/>       <!-- ~17 degrees tilt toward robot -->
 
-  <!-- Board/fixture base - raised on a stand -->
+  <!-- Board/fixture base - on table -->
   <link name="board_stand">
     <visual>
-      <origin xyz="0 0 0.05"/>
-      <geometry><box size="0.08 0.08 0.1"/></geometry>
+      <origin xyz="0 0 0.04"/>
+      <geometry><box size="0.10 0.10 0.08"/></geometry>
       <material name="stand_dark"><color rgba="0.2 0.2 0.2 1"/></material>
     </visual>
     <collision>
-      <origin xyz="0 0 0.05"/>
-      <geometry><box size="0.08 0.08 0.1"/></geometry>
+      <origin xyz="0 0 0.04"/>
+      <geometry><box size="0.10 0.10 0.08"/></geometry>
     </collision>
     <inertial>
       <mass value="0.5"/>
@@ -264,7 +265,8 @@
   <joint name="board_stand_joint" type="fixed">
     <parent link="world"/>
     <child link="board_stand"/>
-    <origin xyz="0.5 -0.2 0.45" rpy="0 0 0"/>
+    <!-- Table top at z=0.425 -->
+    <origin xyz="0.5 -0.25 0.425" rpy="0 0 0"/>
   </joint>
 
   <!-- Tilted board/panel -->
@@ -285,7 +287,7 @@
     <parent link="board_stand"/>
     <child link="socket_board"/>
     <!-- Tilted forward so socket faces the robot -->
-    <origin xyz="0 0 0.1" rpy="${board_tilt} 0 0"/>
+    <origin xyz="0 0.02 0.08" rpy="${board_tilt} 0 0"/>
   </joint>
 
   <!-- USB-like socket housing (rectangular) -->
@@ -352,57 +354,35 @@
   </gazebo>
 
   <!-- ============================================================ -->
-  <!-- Deformable Cable (15 segments with 2-DOF joints)             -->
+  <!-- Deformable Cable (25 segments with 2-DOF joints)             -->
   <!-- ============================================================ -->
 
   <!-- Cable parameters - tuned for physics stability -->
   <xacro:property name="cable_radius" value="0.005"/>
-  <xacro:property name="cable_length" value="0.60"/>  <!-- 60cm long cable -->
-  <xacro:property name="num_segments" value="15"/>
+  <xacro:property name="cable_length" value="1.50"/>  <!-- 150cm long cable (3x original) -->
+  <xacro:property name="num_segments" value="25"/>
   <xacro:property name="segment_length" value="${cable_length / num_segments}"/>
-  <xacro:property name="segment_mass" value="0.02"/>  <!-- heavier for stability -->
+  <xacro:property name="segment_mass" value="0.015"/>  <!-- lighter per segment for longer cable -->
 
-  <!-- Cable anchor mount (raised stand) -->
-  <link name="cable_mount_stand">
-    <visual>
-      <origin xyz="0 0 0.15"/>
-      <geometry><box size="0.06 0.06 0.3"/></geometry>
-      <material name="mount_grey"><color rgba="0.4 0.4 0.4 1"/></material>
-    </visual>
-    <collision>
-      <origin xyz="0 0 0.15"/>
-      <geometry><box size="0.06 0.06 0.3"/></geometry>
-    </collision>
-    <inertial>
-      <mass value="1.0"/>
-      <inertia ixx="1e-2" ixy="0" ixz="0" iyy="1e-2" iyz="0" izz="1e-3"/>
-    </inertial>
-  </link>
-  <joint name="cable_mount_stand_joint" type="fixed">
-    <parent link="world"/>
-    <child link="cable_mount_stand"/>
-    <origin xyz="0.2 0.4 0.45" rpy="0 0 0"/>
-  </joint>
-
-  <!-- Cable anchor point (on top of stand) -->
+  <!-- Cable anchor point - directly on table, no tower -->
   <link name="cable_anchor">
     <visual>
-      <geometry><cylinder radius="0.025" length="0.02"/></geometry>
+      <geometry><cylinder radius="0.03" length="0.02"/></geometry>
       <material name="anchor_dark"><color rgba="0.2 0.2 0.2 1"/></material>
     </visual>
     <collision>
-      <geometry><cylinder radius="0.025" length="0.02"/></geometry>
+      <geometry><cylinder radius="0.03" length="0.02"/></geometry>
     </collision>
     <inertial>
-      <mass value="0.2"/>
-      <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/>
+      <mass value="0.3"/>
+      <inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-4"/>
     </inertial>
   </link>
   <joint name="cable_anchor_joint" type="fixed">
-    <parent link="cable_mount_stand"/>
+    <parent link="world"/>
     <child link="cable_anchor"/>
-    <!-- On top of the stand, cable hangs down -->
-    <origin xyz="0 0 0.3" rpy="0 0 0"/>
+    <!-- Directly on table surface at z=0.425 + 0.01 (half anchor height) -->
+    <origin xyz="0.3 0.35 0.435" rpy="0 0 0"/>
   </joint>
 
   <!-- Cable segment macro with 2-DOF (roll + pitch) -->
@@ -465,7 +445,7 @@
     </gazebo>
   </xacro:macro>
 
-  <!-- Generate 15 cable segments -->
+  <!-- Generate 25 cable segments -->
   <xacro:cable_segment_2dof index="0" parent_link="cable_anchor" is_first="true"/>
   <xacro:cable_segment_2dof index="1" parent_link="cable_segment_0"/>
   <xacro:cable_segment_2dof index="2" parent_link="cable_segment_1"/>
@@ -481,6 +461,16 @@
   <xacro:cable_segment_2dof index="12" parent_link="cable_segment_11"/>
   <xacro:cable_segment_2dof index="13" parent_link="cable_segment_12"/>
   <xacro:cable_segment_2dof index="14" parent_link="cable_segment_13"/>
+  <xacro:cable_segment_2dof index="15" parent_link="cable_segment_14"/>
+  <xacro:cable_segment_2dof index="16" parent_link="cable_segment_15"/>
+  <xacro:cable_segment_2dof index="17" parent_link="cable_segment_16"/>
+  <xacro:cable_segment_2dof index="18" parent_link="cable_segment_17"/>
+  <xacro:cable_segment_2dof index="19" parent_link="cable_segment_18"/>
+  <xacro:cable_segment_2dof index="20" parent_link="cable_segment_19"/>
+  <xacro:cable_segment_2dof index="21" parent_link="cable_segment_20"/>
+  <xacro:cable_segment_2dof index="22" parent_link="cable_segment_21"/>
+  <xacro:cable_segment_2dof index="23" parent_link="cable_segment_22"/>
+  <xacro:cable_segment_2dof index="24" parent_link="cable_segment_23"/>
 
   <!-- USB-like rectangular connector (plug) at end of cable -->
   <!-- Connector dimensions match socket: 12mm x 4mm -->
@@ -506,7 +496,7 @@
     </inertial>
   </link>
   <joint name="connector_joint" type="fixed">
-    <parent link="cable_segment_14"/>
+    <parent link="cable_segment_24"/>
     <child link="connector_grip"/>
     <origin xyz="0 0 ${segment_length}" rpy="0 0 0"/>
   </joint>

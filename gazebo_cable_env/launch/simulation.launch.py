@@ -11,7 +11,8 @@ from launch.actions import (
     DeclareLaunchArgument,
     ExecuteProcess,
     RegisterEventHandler,
-    TimerAction
+    TimerAction,
+    SetEnvironmentVariable
 )
 from launch.event_handlers import OnProcessExit
 from launch.substitutions import LaunchConfiguration, Command, PathJoinSubstitution
@@ -21,6 +22,9 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 def generate_launch_description():
     pkg_path = get_package_share_directory('gazebo_cable_env')
+
+    # Set GZ_SIM_SYSTEM_PLUGIN_PATH to find gz_ros2_control
+    gz_plugin_path = '/opt/ros/jazzy/lib'
 
     # Xacro file
     xacro_file = os.path.join(pkg_path, 'urdf', 'ur5e_hande.urdf.xacro')
@@ -135,6 +139,9 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        # Set plugin path for gz_ros2_control
+        SetEnvironmentVariable('GZ_SIM_SYSTEM_PLUGIN_PATH', gz_plugin_path),
+
         # Declare arguments
         DeclareLaunchArgument(
             'use_sim_time',
