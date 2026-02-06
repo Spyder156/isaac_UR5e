@@ -1,0 +1,49 @@
+-- The C compiler identification is GNU 14.2.0
+-- The CXX compiler identification is GNU 14.2.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ament_cmake: 2.5.5 (/opt/ros/jazzy/share/ament_cmake/cmake)
+-- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter 
+-- Configuring done (0.3s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/raghav/workspace/intrinsic_challenge/build/gazebo_cable_env
+-- Install configuration: ""
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/urdf
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/urdf/circuit_board.urdf.xacro
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/urdf/cable.urdf.xacro
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/urdf/robotiq_hande_sim.xacro
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/urdf/ur5e_hande.urdf.xacro
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/urdf/world.urdf.xacro
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/meshes
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/worlds
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/worlds/cable_insertion.world
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/worlds/cable_insertion.sdf
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/launch
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/launch/simulation.launch.py
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/config
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/config/controllers.yaml
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/scripts
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/scripts/test_simulation.py
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/ament_index/resource_index/package_run_dependencies/gazebo_cable_env
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/ament_index/resource_index/parent_prefix_path/gazebo_cable_env
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/environment/ament_prefix_path.sh
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/environment/ament_prefix_path.dsv
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/environment/path.sh
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/environment/path.dsv
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/local_setup.bash
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/local_setup.sh
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/local_setup.zsh
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/local_setup.dsv
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/package.dsv
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/ament_index/resource_index/packages/gazebo_cable_env
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/cmake/gazebo_cable_envConfig.cmake
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/cmake/gazebo_cable_envConfig-version.cmake
+-- Installing: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/package.xml

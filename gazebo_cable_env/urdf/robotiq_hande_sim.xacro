@@ -1,0 +1,135 @@
+<?xml version="1.0"?>
+<!-- Simplified Hand-E for simulation (uses real meshes, no driver) -->
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find robotiq_hande_description)/urdf/cylinder_inertial.xacro"/>
+
+  <xacro:macro name="robotiq_hande_sim" params="prefix parent *origin">
+    
+    <!-- Dimensions from original -->
+    <xacro:property name="coupler_height" value="0.011"/>
+    <xacro:property name="hande_height" value="0.099"/>
+    <xacro:property name="hande_radius" value="0.0375"/>
+    <xacro:property name="grip_max" value="0.025"/>
+
+    <!-- Coupler joint -->
+    <joint name="${prefix}hande_coupler_joint" type="fixed">
+      <xacro:insert_block name="origin"/>
+      <parent link="${parent}"/>
+      <child link="${prefix}hande_coupler"/>
+    </joint>
+
+    <link name="${prefix}hande_coupler">
+      <visual>
+        <geometry>
+          <mesh filename="package://robotiq_hande_description/meshes/io_coupler.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0.008" rpy="0 0 0"/>
+        <geometry>
+          <cylinder length="0.017" radius="0.038"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.12"/>
+        <origin xyz="0 0 0.008"/>
+        <inertia ixx="5e-5" ixy="0" ixz="0" iyy="5e-5" iyz="0" izz="5e-5"/>
+      </inertial>
+    </link>
+
+    <!-- Hand-E base joint -->
+    <joint name="${prefix}hande_base_joint" type="fixed">
+      <origin xyz="0 0 ${coupler_height}" rpy="0 0 0"/>
+      <parent link="${prefix}hande_coupler"/>
+      <child link="${prefix}hande_link"/>
+    </joint>
+
+    <link name="${prefix}hande_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://robotiq_hande_description/meshes/hande.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0.05" rpy="0 0 0"/>
+        <geometry>
+          <cylinder length="${hande_height}" radius="${hande_radius}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.86"/>
+        <origin xyz="0 0 0.05"/>
+        <inertia ixx="5e-4" ixy="0" ixz="0" iyy="5e-4" iyz="0" izz="3e-4"/>
+      </inertial>
+    </link>
+
+    <!-- Left finger -->
+    <joint name="${prefix}hande_left_finger_joint" type="prismatic">
+      <origin xyz="0 0 ${hande_height}" rpy="0 0 0"/>
+      <parent link="${prefix}hande_link"/>
+      <child link="${prefix}hande_left_finger"/>
+      <axis xyz="1 0 0"/>
+      <limit effort="130" lower="0" upper="${grip_max}" velocity="0.15"/>
+    </joint>
+
+    <link name="${prefix}hande_left_finger">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://robotiq_hande_description/meshes/finger.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0.02" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.01 0.02 0.04"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.04"/>
+        <origin xyz="0 0 0.02"/>
+        <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-6"/>
+      </inertial>
+    </link>
+
+    <!-- Right finger (independent - controlled via ros2_control) -->
+    <joint name="${prefix}hande_right_finger_joint" type="prismatic">
+      <origin xyz="0 0 ${hande_height}" rpy="0 0 0"/>
+      <parent link="${prefix}hande_link"/>
+      <child link="${prefix}hande_right_finger"/>
+      <axis xyz="-1 0 0"/>
+      <limit effort="130" lower="0" upper="${grip_max}" velocity="0.15"/>
+    </joint>
+
+    <link name="${prefix}hande_right_finger">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 ${pi}"/>
+        <geometry>
+          <mesh filename="package://robotiq_hande_description/meshes/finger.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0.02" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.01 0.02 0.04"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.04"/>
+        <origin xyz="0 0 0.02"/>
+        <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-6"/>
+      </inertial>
+    </link>
+
+    <!-- End effector frame -->
+    <joint name="${prefix}hande_end_joint" type="fixed">
+      <origin xyz="0 0 ${hande_height + 0.0465}" rpy="0 0 0"/>
+      <parent link="${prefix}hande_link"/>
+      <child link="${prefix}hande_tcp"/>
+    </joint>
+    <link name="${prefix}hande_tcp"/>
+
+  </xacro:macro>
+</robot>

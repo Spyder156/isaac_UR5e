@@ -1,0 +1,32 @@
+-- Found ament_cmake: 2.5.5 (/opt/ros/jazzy/share/ament_cmake/cmake)
+-- Override CMake install command with custom implementation using symlinks instead of copying resources
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/raghav/workspace/intrinsic_challenge/build/gazebo_cable_env
+-- Install configuration: ""
+-- Execute custom install script
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/urdf/cable.urdf.xacro
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/urdf/circuit_board.urdf.xacro
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/urdf/robotiq_hande_sim.xacro
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/urdf/ur5e_hande.urdf.xacro
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/urdf/world.urdf.xacro
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/worlds/cable_insertion.sdf
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/worlds/cable_insertion.world
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/launch/simulation.launch.py
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/config/controllers.yaml
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/scripts/test_simulation.py
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/ament_index/resource_index/package_run_dependencies/gazebo_cable_env
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/ament_index/resource_index/parent_prefix_path/gazebo_cable_env
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/environment/ament_prefix_path.sh
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/environment/ament_prefix_path.dsv
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/environment/path.sh
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/environment/path.dsv
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/local_setup.bash
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/local_setup.sh
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/local_setup.zsh
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/local_setup.dsv
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/package.dsv
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/ament_index/resource_index/packages/gazebo_cable_env
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/cmake/gazebo_cable_envConfig.cmake
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/cmake/gazebo_cable_envConfig-version.cmake
+-- Symlinking: /home/raghav/workspace/intrinsic_challenge/install/gazebo_cable_env/share/gazebo_cable_env/package.xml

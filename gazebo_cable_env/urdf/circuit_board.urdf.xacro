@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="circuit_board">
+  <!-- ============================================================ -->
+  <!-- Circuit Board with Insertion Socket                          -->
+  <!-- ============================================================ -->
+
+  <xacro:arg name="board_x" default="0.4"/>
+  <xacro:arg name="board_y" default="0.0"/>
+  <xacro:arg name="board_z" default="0.0"/>
+
+  <!-- Board base -->
+  <link name="circuit_board_base">
+    <visual>
+      <origin xyz="0 0 0.01" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.15 0.10 0.02"/>
+      </geometry>
+      <material name="board_green">
+        <color rgba="0.1 0.5 0.2 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.01" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.15 0.10 0.02"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.5"/>
+      <origin xyz="0 0 0.01"/>
+      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+    </inertial>
+  </link>
+
+  <joint name="circuit_board_joint" type="fixed">
+    <parent link="world"/>
+    <child link="circuit_board_base"/>
+    <origin xyz="$(arg board_x) $(arg board_y) $(arg board_z)" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Socket housing (upright) -->
+  <link name="socket_housing">
+    <visual>
+      <origin xyz="0 0 0.02" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.012" length="0.04"/>
+      </geometry>
+      <material name="socket_white">
+        <color rgba="0.9 0.9 0.9 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.02" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.012" length="0.04"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.02"/>
+      <origin xyz="0 0 0.02"/>
+      <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/>
+    </inertial>
+  </link>
+
+  <joint name="socket_housing_joint" type="fixed">
+    <parent link="circuit_board_base"/>
+    <child link="socket_housing"/>
+    <origin xyz="0 0 0.02" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Socket hole (insertion point) - this is the target -->
+  <link name="socket_insertion_point">
+    <visual>
+      <origin xyz="0 0 0.002" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.009" length="0.004"/>
+      </geometry>
+      <material name="socket_hole">
+        <color rgba="0.1 0.1 0.1 1"/>
+      </material>
+    </visual>
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="0.0000001" ixy="0" ixz="0" iyy="0.0000001" iyz="0" izz="0.0000001"/>
+    </inertial>
+  </link>
+
+  <joint name="socket_insertion_joint" type="fixed">
+    <parent link="socket_housing"/>
+    <child link="socket_insertion_point"/>
+    <origin xyz="0 0 0.04" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Gazebo materials -->
+  <gazebo reference="circuit_board_base">
+    <material>Gazebo/Green</material>
+    <mu1>0.9</mu1>
+    <mu2>0.9</mu2>
+  </gazebo>
+
+  <gazebo reference="socket_housing">
+    <material>Gazebo/White</material>
+    <mu1>0.5</mu1>
+    <mu2>0.5</mu2>
+  </gazebo>
+
+</robot>

@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>gazebo_cable_env</name>
+  <version>0.1.0</version>
+  <description>Gazebo simulation for cable insertion task with UR5e + Robotiq gripper</description>
+  <maintainer email="raghav@example.com">Raghav</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>trajectory_msgs</depend>
+  <depend>control_msgs</depend>
+
+  <!-- Gazebo Sim -->
+  <depend>ros_gz_sim</depend>
+  <depend>ros_gz_bridge</depend>
+  <depend>ros_gz_interfaces</depend>
+
+  <!-- ros2_control -->
+  <depend>controller_manager</depend>
+  <depend>joint_state_broadcaster</depend>
+  <depend>joint_trajectory_controller</depend>
+  <depend>position_controllers</depend>
+  <depend>gz_ros2_control</depend>
+
+  <!-- Robot descriptions -->
+  <depend>robot_state_publisher</depend>
+  <depend>xacro</depend>
+  <depend>ur_description</depend>
+  <depend>robotiq_hande_description</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

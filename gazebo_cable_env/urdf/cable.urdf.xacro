@@ -1,0 +1,175 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="cable">
+  <!-- ============================================================ -->
+  <!-- Deformable Cable Model (Chain of Rigid Segments)             -->
+  <!-- One end fixed to ground, other end free with connector       -->
+  <!-- Joints are invisible (no visual elements)                    -->
+  <!-- ============================================================ -->
+
+  <xacro:arg name="cable_length" default="0.4"/>
+  <xacro:arg name="num_segments" default="20"/>
+  <xacro:arg name="cable_radius" default="0.004"/>
+  <xacro:arg name="cable_origin_x" default="0.5"/>
+  <xacro:arg name="cable_origin_y" default="0.3"/>
+  <xacro:arg name="cable_origin_z" default="0.01"/>
+
+  <!-- Calculated properties -->
+  <xacro:property name="segment_length" value="${$(arg cable_length) / $(arg num_segments)}"/>
+  <xacro:property name="segment_mass" value="0.005"/>
+  <xacro:property name="cable_color_r" value="0.2"/>
+  <xacro:property name="cable_color_g" value="0.2"/>
+  <xacro:property name="cable_color_b" value="0.2"/>
+
+  <!-- Cable segment macro -->
+  <xacro:macro name="cable_segment" params="index parent_link">
+    <link name="cable_segment_${index}">
+      <visual>
+        <origin xyz="0 0 ${segment_length/2}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="$(arg cable_radius)" length="${segment_length}"/>
+        </geometry>
+        <material name="cable_black">
+          <color rgba="${cable_color_r} ${cable_color_g} ${cable_color_b} 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${segment_length/2}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="$(arg cable_radius)" length="${segment_length}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="${segment_mass}"/>
+        <origin xyz="0 0 ${segment_length/2}"/>
+        <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.000001"/>
+      </inertial>
+    </link>
+
+    <!-- Spherical joint (invisible - no visual) for flexibility -->
+    <joint name="cable_joint_${index}" type="continuous">
+      <parent link="${parent_link}"/>
+      <child link="cable_segment_${index}"/>
+      <xacro:if value="${index == 0}">
+        <origin xyz="$(arg cable_origin_x) $(arg cable_origin_y) $(arg cable_origin_z)" rpy="0 0 0"/>
+      </xacro:if>
+      <xacro:unless value="${index == 0}">
+        <origin xyz="0 0 ${segment_length}" rpy="0 0 0"/>
+      </xacro:unless>
+      <axis xyz="1 0 0"/>
+      <dynamics damping="0.1" friction="0.01"/>
+      <limit effort="1.0" velocity="10.0"/>
+    </joint>
+
+    <!-- Additional rotation joint for 2nd DOF -->
+    <link name="cable_segment_${index}_pitch">
+      <inertial>
+        <mass value="0.0001"/>
+        <inertia ixx="0.0000001" ixy="0" ixz="0" iyy="0.0000001" iyz="0" izz="0.0000001"/>
+      </inertial>
+    </link>
+
+    <joint name="cable_joint_${index}_pitch" type="continuous">
+      <parent link="cable_segment_${index}"/>
+      <child link="cable_segment_${index}_pitch"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <dynamics damping="0.1" friction="0.01"/>
+      <limit effort="1.0" velocity="10.0"/>
+    </joint>
+
+    <!-- Gazebo friction properties -->
+    <gazebo reference="cable_segment_${index}">
+      <mu1>0.8</mu1>
+      <mu2>0.8</mu2>
+      <material>Gazebo/DarkGrey</material>
+    </gazebo>
+  </xacro:macro>
+
+  <!-- Cable anchor (fixed to world) -->
+  <link name="cable_anchor">
+    <visual>
+      <geometry>
+        <cylinder radius="0.015" length="0.01"/>
+      </geometry>
+      <material name="anchor_grey">
+        <color rgba="0.4 0.4 0.4 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.015" length="0.01"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
+  </link>
+
+  <joint name="cable_anchor_joint" type="fixed">
+    <parent link="world"/>
+    <child link="cable_anchor"/>
+    <origin xyz="$(arg cable_origin_x) $(arg cable_origin_y) 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Generate cable segments -->
+  <xacro:cable_segment index="0" parent_link="cable_anchor"/>
+  <xacro:cable_segment index="1" parent_link="cable_segment_0_pitch"/>
+  <xacro:cable_segment index="2" parent_link="cable_segment_1_pitch"/>
+  <xacro:cable_segment index="3" parent_link="cable_segment_2_pitch"/>
+  <xacro:cable_segment index="4" parent_link="cable_segment_3_pitch"/>
+  <xacro:cable_segment index="5" parent_link="cable_segment_4_pitch"/>
+  <xacro:cable_segment index="6" parent_link="cable_segment_5_pitch"/>
+  <xacro:cable_segment index="7" parent_link="cable_segment_6_pitch"/>
+  <xacro:cable_segment index="8" parent_link="cable_segment_7_pitch"/>
+  <xacro:cable_segment index="9" parent_link="cable_segment_8_pitch"/>
+  <xacro:cable_segment index="10" parent_link="cable_segment_9_pitch"/>
+  <xacro:cable_segment index="11" parent_link="cable_segment_10_pitch"/>
+  <xacro:cable_segment index="12" parent_link="cable_segment_11_pitch"/>
+  <xacro:cable_segment index="13" parent_link="cable_segment_12_pitch"/>
+  <xacro:cable_segment index="14" parent_link="cable_segment_13_pitch"/>
+  <xacro:cable_segment index="15" parent_link="cable_segment_14_pitch"/>
+  <xacro:cable_segment index="16" parent_link="cable_segment_15_pitch"/>
+  <xacro:cable_segment index="17" parent_link="cable_segment_16_pitch"/>
+  <xacro:cable_segment index="18" parent_link="cable_segment_17_pitch"/>
+  <xacro:cable_segment index="19" parent_link="cable_segment_18_pitch"/>
+
+  <!-- ============================================================ -->
+  <!-- Connector at Free End                                        -->
+  <!-- ============================================================ -->
+  <link name="connector">
+    <visual>
+      <origin xyz="0 0 0.015" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.008" length="0.03"/>
+      </geometry>
+      <material name="connector_blue">
+        <color rgba="0.2 0.4 0.8 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.015" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.008" length="0.03"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.02"/>
+      <origin xyz="0 0 0.015"/>
+      <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/>
+    </inertial>
+  </link>
+
+  <joint name="connector_joint" type="fixed">
+    <parent link="cable_segment_19_pitch"/>
+    <child link="connector"/>
+    <origin xyz="0 0 ${segment_length}" rpy="0 0 0"/>
+  </joint>
+
+  <gazebo reference="connector">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+    <material>Gazebo/Blue</material>
+  </gazebo>
+
+</robot>

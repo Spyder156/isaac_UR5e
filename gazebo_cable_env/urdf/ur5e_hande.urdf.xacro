@@ -1,0 +1,546 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="ur5e_hande_cable_env">
+  <!-- ============================================================ -->
+  <!-- Cable Insertion Environment:                                 -->
+  <!-- UR5e + Robotiq Hand-E + 3 Cameras + Cable + Board            -->
+  <!-- With ros2_control for Gazebo Sim                             -->
+  <!-- ============================================================ -->
+
+  <!-- World link -->
+  <link name="world"/>
+
+  <!-- ============================================================ -->
+  <!-- UR5e Robot                                                   -->
+  <!-- ============================================================ -->
+  <xacro:include filename="$(find ur_description)/urdf/ur_macro.xacro"/>
+
+  <xacro:ur_robot
+    name="ur5e"
+    tf_prefix=""
+    parent="world"
+    joint_limits_parameters_file="$(find ur_description)/config/ur5e/joint_limits.yaml"
+    kinematics_parameters_file="$(find ur_description)/config/ur5e/default_kinematics.yaml"
+    physical_parameters_file="$(find ur_description)/config/ur5e/physical_parameters.yaml"
+    visual_parameters_file="$(find ur_description)/config/ur5e/visual_parameters.yaml"
+  >
+    <origin xyz="0 0 0.45" rpy="0 0 0"/>
+  </xacro:ur_robot>
+
+  <!-- ============================================================ -->
+  <!-- Robotiq Hand-E Gripper (real meshes)                         -->
+  <!-- ============================================================ -->
+  <xacro:include filename="$(find gazebo_cable_env)/urdf/robotiq_hande_sim.xacro"/>
+
+  <xacro:robotiq_hande_sim prefix="" parent="tool0">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_hande_sim>
+
+  <!-- ============================================================ -->
+  <!-- ros2_control for Gazebo Sim                                  -->
+  <!-- ============================================================ -->
+  <ros2_control name="GazeboSimSystem" type="system">
+    <hardware>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+    </hardware>
+
+    <!-- UR5e Arm Joints -->
+    <joint name="shoulder_pan_joint">
+      <command_interface name="position">
+        <param name="min">-6.2832</param>
+        <param name="max">6.2832</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+
+    <joint name="shoulder_lift_joint">
+      <command_interface name="position">
+        <param name="min">-6.2832</param>
+        <param name="max">6.2832</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">-1.5708</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+
+    <joint name="elbow_joint">
+      <command_interface name="position">
+        <param name="min">-3.14159</param>
+        <param name="max">3.14159</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+
+    <joint name="wrist_1_joint">
+      <command_interface name="position">
+        <param name="min">-6.2832</param>
+        <param name="max">6.2832</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">-1.5708</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+
+    <joint name="wrist_2_joint">
+      <command_interface name="position">
+        <param name="min">-6.2832</param>
+        <param name="max">6.2832</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+
+    <joint name="wrist_3_joint">
+      <command_interface name="position">
+        <param name="min">-6.2832</param>
+        <param name="max">6.2832</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+
+    <!-- Robotiq Hand-E Gripper Joints (both fingers for proper control) -->
+    <joint name="hande_left_finger_joint">
+      <command_interface name="position">
+        <param name="min">0</param>
+        <param name="max">0.025</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.025</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="hande_right_finger_joint">
+      <command_interface name="position">
+        <param name="min">0</param>
+        <param name="max">0.025</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.025</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+
+  <!-- gz_ros2_control Plugin -->
+  <gazebo>
+    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>$(find gazebo_cable_env)/config/controllers.yaml</parameters>
+      <controller_manager_name>controller_manager</controller_manager_name>
+    </plugin>
+  </gazebo>
+
+  <!-- Both gripper fingers are now controlled via ros2_control -->
+
+  <!-- ============================================================ -->
+  <!-- Force-Torque Sensor (gz-sim format)                          -->
+  <!-- Uses the existing tool0 joint from UR5e for F/T sensing      -->
+  <!-- ============================================================ -->
+  <gazebo reference="flange-tool0">
+    <sensor name="ft_sensor" type="force_torque">
+      <always_on>true</always_on>
+      <update_rate>100</update_rate>
+      <visualize>false</visualize>
+      <force_torque>
+        <frame>child</frame>
+        <measure_direction>child_to_parent</measure_direction>
+      </force_torque>
+      <topic>ft_sensor</topic>
+    </sensor>
+  </gazebo>
+
+  <!-- ============================================================ -->
+  <!-- 3 Wrist Cameras (gz-sim format with optical frames)          -->
+  <!-- ============================================================ -->
+  <!-- Note: pi is already defined by xacro -->
+
+  <xacro:macro name="wrist_camera" params="name parent xyz rpy">
+    <link name="${name}_link">
+      <visual>
+        <geometry><box size="0.02 0.02 0.02"/></geometry>
+        <material name="cam_black"><color rgba="0.1 0.1 0.1 1"/></material>
+      </visual>
+      <collision>
+        <geometry><box size="0.02 0.02 0.02"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="0.03"/>
+        <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/>
+      </inertial>
+    </link>
+    <joint name="${name}_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="${name}_link"/>
+      <origin xyz="${xyz}" rpy="${rpy}"/>
+    </joint>
+
+    <!-- Optical frame (Z forward, X right, Y down per ROS convention) -->
+    <link name="${name}_optical_frame">
+      <inertial>
+        <mass value="0.001"/>
+        <inertia ixx="1e-9" ixy="0" ixz="0" iyy="1e-9" iyz="0" izz="1e-9"/>
+      </inertial>
+    </link>
+    <joint name="${name}_optical_joint" type="fixed">
+      <parent link="${name}_link"/>
+      <child link="${name}_optical_frame"/>
+      <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+    </joint>
+
+    <gazebo reference="${name}_link">
+      <sensor name="${name}" type="camera">
+        <always_on>true</always_on>
+        <update_rate>30</update_rate>
+        <visualize>true</visualize>
+        <camera>
+          <horizontal_fov>1.2</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>480</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.01</near>
+            <far>5.0</far>
+          </clip>
+        </camera>
+        <topic>${name}/image_raw</topic>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+  <!-- Camera positions: 90 degrees apart around wrist, pointing toward gripper -->
+  <xacro:wrist_camera name="camera_left" parent="wrist_3_link"
+                      xyz="0 0.05 0.02" rpy="0 0.4 -1.5708"/>
+  <xacro:wrist_camera name="camera_bottom" parent="wrist_3_link"
+                      xyz="0.05 0 0.02" rpy="0 0.4 0"/>
+  <xacro:wrist_camera name="camera_right" parent="wrist_3_link"
+                      xyz="0 -0.05 0.02" rpy="0 0.4 1.5708"/>
+
+  <!-- ============================================================ -->
+  <!-- Socket Board with USB-like rectangular slot                  -->
+  <!-- ============================================================ -->
+
+  <!-- Socket dimensions (USB-like thin rectangle) -->
+  <xacro:property name="socket_width" value="0.012"/>   <!-- 12mm wide -->
+  <xacro:property name="socket_height" value="0.004"/>  <!-- 4mm tall (thin) -->
+  <xacro:property name="socket_depth" value="0.015"/>   <!-- 15mm deep -->
+  <xacro:property name="board_tilt" value="0.5"/>       <!-- ~29 degrees tilt -->
+
+  <!-- Board/fixture base - raised on a stand -->
+  <link name="board_stand">
+    <visual>
+      <origin xyz="0 0 0.05"/>
+      <geometry><box size="0.08 0.08 0.1"/></geometry>
+      <material name="stand_dark"><color rgba="0.2 0.2 0.2 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.05"/>
+      <geometry><box size="0.08 0.08 0.1"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.5"/>
+      <inertia ixx="1e-3" ixy="0" ixz="0" iyy="1e-3" iyz="0" izz="1e-3"/>
+    </inertial>
+  </link>
+  <joint name="board_stand_joint" type="fixed">
+    <parent link="world"/>
+    <child link="board_stand"/>
+    <origin xyz="0.5 -0.2 0.45" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Tilted board/panel -->
+  <link name="socket_board">
+    <visual>
+      <geometry><box size="0.10 0.08 0.01"/></geometry>
+      <material name="board_dark"><color rgba="0.15 0.15 0.15 1"/></material>
+    </visual>
+    <collision>
+      <geometry><box size="0.10 0.08 0.01"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.2"/>
+      <inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-4"/>
+    </inertial>
+  </link>
+  <joint name="socket_board_joint" type="fixed">
+    <parent link="board_stand"/>
+    <child link="socket_board"/>
+    <!-- Tilted forward so socket faces the robot -->
+    <origin xyz="0 0 0.1" rpy="${board_tilt} 0 0"/>
+  </joint>
+
+  <!-- USB-like socket housing (rectangular) -->
+  <link name="socket_housing">
+    <visual>
+      <origin xyz="0 0 0.008"/>
+      <geometry><box size="${socket_width + 0.006} ${socket_height + 0.006} 0.016"/></geometry>
+      <material name="socket_white"><color rgba="0.9 0.9 0.9 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.008"/>
+      <geometry><box size="${socket_width + 0.006} ${socket_height + 0.006} 0.016"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.01"/>
+      <inertia ixx="1e-7" ixy="0" ixz="0" iyy="1e-7" iyz="0" izz="1e-7"/>
+    </inertial>
+  </link>
+  <joint name="socket_housing_joint" type="fixed">
+    <parent link="socket_board"/>
+    <child link="socket_housing"/>
+    <origin xyz="0 0 0.005" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Socket insertion hole (dark rectangular slot) -->
+  <link name="socket_slot">
+    <visual>
+      <origin xyz="0 0 0.001"/>
+      <geometry><box size="${socket_width} ${socket_height} 0.002"/></geometry>
+      <material name="slot_dark"><color rgba="0.05 0.05 0.05 1"/></material>
+    </visual>
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="1e-9" ixy="0" ixz="0" iyy="1e-9" iyz="0" izz="1e-9"/>
+    </inertial>
+  </link>
+  <joint name="socket_slot_joint" type="fixed">
+    <parent link="socket_housing"/>
+    <child link="socket_slot"/>
+    <origin xyz="0 0 0.016" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Target reference frame for insertion -->
+  <link name="socket_insertion_point">
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="1e-9" ixy="0" ixz="0" iyy="1e-9" iyz="0" izz="1e-9"/>
+    </inertial>
+  </link>
+  <joint name="socket_insertion_joint" type="fixed">
+    <parent link="socket_slot"/>
+    <child link="socket_insertion_point"/>
+    <origin xyz="0 0 0.002" rpy="0 0 0"/>
+  </joint>
+
+  <gazebo reference="socket_board">
+    <mu1>0.9</mu1>
+    <mu2>0.9</mu2>
+  </gazebo>
+
+  <gazebo reference="socket_housing">
+    <mu1>0.6</mu1>
+    <mu2>0.6</mu2>
+  </gazebo>
+
+  <!-- ============================================================ -->
+  <!-- Deformable Cable (15 segments with 2-DOF joints)             -->
+  <!-- ============================================================ -->
+
+  <!-- Cable parameters - tuned for physics stability -->
+  <xacro:property name="cable_radius" value="0.005"/>
+  <xacro:property name="cable_length" value="0.60"/>  <!-- 60cm long cable -->
+  <xacro:property name="num_segments" value="15"/>
+  <xacro:property name="segment_length" value="${cable_length / num_segments}"/>
+  <xacro:property name="segment_mass" value="0.02"/>  <!-- heavier for stability -->
+
+  <!-- Cable anchor mount (raised stand) -->
+  <link name="cable_mount_stand">
+    <visual>
+      <origin xyz="0 0 0.15"/>
+      <geometry><box size="0.06 0.06 0.3"/></geometry>
+      <material name="mount_grey"><color rgba="0.4 0.4 0.4 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.15"/>
+      <geometry><box size="0.06 0.06 0.3"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="1.0"/>
+      <inertia ixx="1e-2" ixy="0" ixz="0" iyy="1e-2" iyz="0" izz="1e-3"/>
+    </inertial>
+  </link>
+  <joint name="cable_mount_stand_joint" type="fixed">
+    <parent link="world"/>
+    <child link="cable_mount_stand"/>
+    <origin xyz="0.2 0.4 0.45" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Cable anchor point (on top of stand) -->
+  <link name="cable_anchor">
+    <visual>
+      <geometry><cylinder radius="0.025" length="0.02"/></geometry>
+      <material name="anchor_dark"><color rgba="0.2 0.2 0.2 1"/></material>
+    </visual>
+    <collision>
+      <geometry><cylinder radius="0.025" length="0.02"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.2"/>
+      <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/>
+    </inertial>
+  </link>
+  <joint name="cable_anchor_joint" type="fixed">
+    <parent link="cable_mount_stand"/>
+    <child link="cable_anchor"/>
+    <!-- On top of the stand, cable hangs down -->
+    <origin xyz="0 0 0.3" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Cable segment macro with 2-DOF (roll + pitch) -->
+  <xacro:macro name="cable_segment_2dof" params="index parent_link is_first:=false">
+    <!-- Roll joint (X-axis rotation) -->
+    <joint name="cable_roll_${index}" type="continuous">
+      <parent link="${parent_link}"/>
+      <child link="cable_roll_link_${index}"/>
+      <xacro:if value="${is_first}">
+        <!-- First segment: rotate 90deg so cable extends horizontally (along -Y) -->
+        <origin xyz="0 0 0.01" rpy="1.5708 0 0"/>
+      </xacro:if>
+      <xacro:unless value="${is_first}">
+        <origin xyz="0 0 ${segment_length}" rpy="0 0 0"/>
+      </xacro:unless>
+      <axis xyz="1 0 0"/>
+      <dynamics damping="0.05" friction="0.01"/>
+    </joint>
+
+    <!-- Invisible roll link - needs real mass/inertia for stability -->
+    <link name="cable_roll_link_${index}">
+      <inertial>
+        <mass value="0.005"/>
+        <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/>
+      </inertial>
+    </link>
+
+    <!-- Pitch joint (Y-axis rotation) -->
+    <joint name="cable_pitch_${index}" type="continuous">
+      <parent link="cable_roll_link_${index}"/>
+      <child link="cable_segment_${index}"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <dynamics damping="0.05" friction="0.01"/>
+    </joint>
+
+    <!-- Visible cable segment -->
+    <link name="cable_segment_${index}">
+      <visual>
+        <origin xyz="0 0 ${segment_length/2}"/>
+        <geometry><cylinder radius="${cable_radius}" length="${segment_length}"/></geometry>
+        <material name="cable_orange"><color rgba="0.95 0.5 0.1 1"/></material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${segment_length/2}"/>
+        <geometry><cylinder radius="${cable_radius}" length="${segment_length}"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="${segment_mass}"/>
+        <origin xyz="0 0 ${segment_length/2}"/>
+        <inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-5"/>
+      </inertial>
+    </link>
+
+    <!-- Gazebo settings for cable segment -->
+    <gazebo reference="cable_segment_${index}">
+      <mu1>0.8</mu1>
+      <mu2>0.8</mu2>
+      <self_collide>true</self_collide>
+    </gazebo>
+  </xacro:macro>
+
+  <!-- Generate 15 cable segments -->
+  <xacro:cable_segment_2dof index="0" parent_link="cable_anchor" is_first="true"/>
+  <xacro:cable_segment_2dof index="1" parent_link="cable_segment_0"/>
+  <xacro:cable_segment_2dof index="2" parent_link="cable_segment_1"/>
+  <xacro:cable_segment_2dof index="3" parent_link="cable_segment_2"/>
+  <xacro:cable_segment_2dof index="4" parent_link="cable_segment_3"/>
+  <xacro:cable_segment_2dof index="5" parent_link="cable_segment_4"/>
+  <xacro:cable_segment_2dof index="6" parent_link="cable_segment_5"/>
+  <xacro:cable_segment_2dof index="7" parent_link="cable_segment_6"/>
+  <xacro:cable_segment_2dof index="8" parent_link="cable_segment_7"/>
+  <xacro:cable_segment_2dof index="9" parent_link="cable_segment_8"/>
+  <xacro:cable_segment_2dof index="10" parent_link="cable_segment_9"/>
+  <xacro:cable_segment_2dof index="11" parent_link="cable_segment_10"/>
+  <xacro:cable_segment_2dof index="12" parent_link="cable_segment_11"/>
+  <xacro:cable_segment_2dof index="13" parent_link="cable_segment_12"/>
+  <xacro:cable_segment_2dof index="14" parent_link="cable_segment_13"/>
+
+  <!-- USB-like rectangular connector (plug) at end of cable -->
+  <!-- Connector dimensions match socket: 12mm x 4mm -->
+  <xacro:property name="plug_width" value="0.011"/>   <!-- slightly smaller than socket -->
+  <xacro:property name="plug_height" value="0.003"/>  <!-- slightly smaller than socket -->
+  <xacro:property name="plug_length" value="0.018"/>  <!-- insertion depth -->
+
+  <!-- Connector grip section (part that gripper holds) -->
+  <link name="connector_grip">
+    <visual>
+      <origin xyz="0 0 0.01"/>
+      <geometry><box size="0.016 0.012 0.02"/></geometry>
+      <material name="grip_orange"><color rgba="0.9 0.5 0.1 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.01"/>
+      <geometry><box size="0.016 0.012 0.02"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.02"/>
+      <origin xyz="0 0 0.01"/>
+      <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/>
+    </inertial>
+  </link>
+  <joint name="connector_joint" type="fixed">
+    <parent link="cable_segment_14"/>
+    <child link="connector_grip"/>
+    <origin xyz="0 0 ${segment_length}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- USB-like plug tip (thin rectangular prong) -->
+  <link name="cable_connector">
+    <visual>
+      <origin xyz="0 0 ${plug_length/2}"/>
+      <geometry><box size="${plug_width} ${plug_height} ${plug_length}"/></geometry>
+      <material name="connector_metal"><color rgba="0.75 0.75 0.78 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${plug_length/2}"/>
+      <geometry><box size="${plug_width} ${plug_height} ${plug_length}"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.01"/>
+      <origin xyz="0 0 ${plug_length/2}"/>
+      <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/>
+    </inertial>
+  </link>
+  <joint name="connector_tip_joint" type="fixed">
+    <parent link="connector_grip"/>
+    <child link="cable_connector"/>
+    <origin xyz="0 0 0.02" rpy="0 0 0"/>
+  </joint>
+
+  <gazebo reference="cable_connector">
+    <mu1>0.5</mu1>
+    <mu2>0.5</mu2>
+  </gazebo>
+  <gazebo reference="connector_grip">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+  </gazebo>
+
+</robot>
