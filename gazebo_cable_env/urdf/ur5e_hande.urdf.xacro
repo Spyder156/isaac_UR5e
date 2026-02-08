@@ -118,14 +118,14 @@
     </joint>
 
     <!-- Robotiq Hand-E Gripper Joints (both fingers for proper control) -->
-    <!-- Initial value 0.005 = gripper closed, holding the cable connector -->
+    <!-- Initial value 0.003 = gripper mostly closed, holding the cable connector -->
     <joint name="hande_left_finger_joint">
       <command_interface name="position">
         <param name="min">0</param>
         <param name="max">0.025</param>
       </command_interface>
       <state_interface name="position">
-        <param name="initial_value">0.005</param>
+        <param name="initial_value">0.003</param>
       </state_interface>
       <state_interface name="velocity"/>
     </joint>
@@ -136,7 +136,7 @@
         <param name="max">0.025</param>
       </command_interface>
       <state_interface name="position">
-        <param name="initial_value">0.005</param>
+        <param name="initial_value">0.003</param>
       </state_interface>
       <state_interface name="velocity"/>
     </joint>
@@ -229,14 +229,24 @@
     </gazebo>
   </xacro:macro>
 
-  <!-- Camera positions: further from wrist, pointing toward gripper/target -->
-  <!-- Cameras mounted on wrist_3_link, positioned to view the gripper and workspace -->
-  <xacro:wrist_camera name="camera_left" parent="wrist_3_link"
-                      xyz="0 0.10 0.0" rpy="0 0.7 -1.5708"/>
-  <xacro:wrist_camera name="camera_bottom" parent="wrist_3_link"
-                      xyz="0.10 0 0.0" rpy="0 0.7 0"/>
-  <xacro:wrist_camera name="camera_right" parent="wrist_3_link"
-                      xyz="0 -0.10 0.0" rpy="0 0.7 1.5708"/>
+  <!-- Camera positions: mounted on gripper body, looking toward fingertips/target -->
+  <!-- hande_link Z axis points toward fingers, so cameras look along +Z with slight convergence -->
+  <!-- In Gazebo, camera looks along +X of its frame, so rotate to align +X with parent +Z -->
+
+  <!-- Camera positions: Left, Bottom, Right around gripper, looking forward with 10° inward tilt -->
+  <!-- 10 degrees = 0.1745 radians -->
+
+  <!-- Left camera: Y+ position -->
+  <xacro:wrist_camera name="camera_left" parent="hande_link"
+                      xyz="0 0.07 0.03" rpy="${pi/2} 0 ${pi/2 + 0.1745}"/>
+
+  <!-- Bottom camera: X- position (below gripper when pointing down) -->
+  <xacro:wrist_camera name="camera_bottom" parent="hande_link"
+                      xyz="-0.07 0 0.03" rpy="${pi/2 + 0.1745} 0 ${pi/2}"/>
+
+  <!-- Right camera: Y- position -->
+  <xacro:wrist_camera name="camera_right" parent="hande_link"
+                      xyz="0 -0.07 0.03" rpy="${pi/2} 0 ${pi/2 - 0.1745}"/>
 
   <!-- ============================================================ -->
   <!-- Socket Board with USB-like rectangular slot                  -->
@@ -248,30 +258,7 @@
   <xacro:property name="socket_depth" value="0.015"/>   <!-- 15mm deep -->
   <xacro:property name="board_tilt" value="0.0"/>       <!-- Straight up, no tilt -->
 
-  <!-- Board/fixture base - on table -->
-  <link name="board_stand">
-    <visual>
-      <origin xyz="0 0 0.04"/>
-      <geometry><box size="0.10 0.10 0.08"/></geometry>
-      <material name="stand_dark"><color rgba="0.2 0.2 0.2 1"/></material>
-    </visual>
-    <collision>
-      <origin xyz="0 0 0.04"/>
-      <geometry><box size="0.10 0.10 0.08"/></geometry>
-    </collision>
-    <inertial>
-      <mass value="0.5"/>
-      <inertia ixx="1e-3" ixy="0" ixz="0" iyy="1e-3" iyz="0" izz="1e-3"/>
-    </inertial>
-  </link>
-  <joint name="board_stand_joint" type="fixed">
-    <parent link="world"/>
-    <child link="board_stand"/>
-    <!-- Table top at z=0.425 -->
-    <origin xyz="0.5 -0.25 0.425" rpy="0 0 0"/>
-  </joint>
-
-  <!-- Tilted board/panel -->
+  <!-- Socket board/panel - directly on table -->
   <link name="socket_board">
     <visual>
       <geometry><box size="0.10 0.08 0.01"/></geometry>
@@ -286,10 +273,10 @@
     </inertial>
   </link>
   <joint name="socket_board_joint" type="fixed">
-    <parent link="board_stand"/>
+    <parent link="world"/>
     <child link="socket_board"/>
-    <!-- Tilted forward so socket faces the robot -->
-    <origin xyz="0 0.02 0.08" rpy="${board_tilt} 0 0"/>
+    <!-- Directly on table top (z=0.425) + half board thickness (0.005) -->
+    <origin xyz="0.5 -0.25 0.43" rpy="${board_tilt} 0 0"/>
   </joint>
 
   <!-- USB-like socket housing (rectangular) -->
@@ -362,10 +349,10 @@
 
   <!-- Cable parameters -->
   <xacro:property name="cable_radius" value="0.005"/>
-  <xacro:property name="cable_length" value="1.0"/>  <!-- 100cm cable -->
-  <xacro:property name="num_segments" value="25"/>
+  <xacro:property name="cable_length" value="0.6"/>  <!-- 60cm cable -->
+  <xacro:property name="num_segments" value="15"/>
   <xacro:property name="segment_length" value="${cable_length / num_segments}"/>
-  <xacro:property name="segment_mass" value="0.012"/>
+  <xacro:property name="segment_mass" value="0.02"/>  <!-- Heavier for better gravity response -->
 
   <!-- USB-like rectangular connector (plug) dimensions -->
   <xacro:property name="plug_width" value="0.011"/>
@@ -373,19 +360,19 @@
   <xacro:property name="plug_length" value="0.018"/>
 
   <!-- ============================================================ -->
-  <!-- Connector attached to gripper (between fingers)              -->
+  <!-- Connector attached to gripper (held between fingers)          -->
   <!-- ============================================================ -->
 
-  <!-- Connector grip section (held by gripper) -->
+  <!-- Connector grip section (the part the gripper holds) -->
   <link name="connector_grip">
     <visual>
       <origin xyz="0 0 0.01"/>
-      <geometry><box size="0.016 0.012 0.02"/></geometry>
+      <geometry><box size="0.014 0.010 0.02"/></geometry>
       <material name="grip_orange"><color rgba="0.9 0.5 0.1 1"/></material>
     </visual>
     <collision>
       <origin xyz="0 0 0.01"/>
-      <geometry><box size="0.016 0.012 0.02"/></geometry>
+      <geometry><box size="0.014 0.010 0.02"/></geometry>
     </collision>
     <inertial>
       <mass value="0.02"/>
@@ -393,13 +380,12 @@
       <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/>
     </inertial>
   </link>
-
-  <!-- Fixed joint attaching connector to gripper body (between fingers) -->
+  <!-- Attached to gripper body, rotated 90° so flat side faces fingers, port sticks out -->
   <joint name="connector_to_gripper_joint" type="fixed">
     <parent link="hande_link"/>
     <child link="connector_grip"/>
-    <!-- Position at finger height, centered between fingers -->
-    <origin xyz="0 0 0.12" rpy="0 0 0"/>
+    <!-- z=0.10 puts grip at finger level, port extends past; rotated 90° around Z so fingers grip flat side -->
+    <origin xyz="0 0 0.10" rpy="0 0 ${pi/2}"/>
   </joint>
 
   <!-- USB-like plug tip (extends forward from connector) -->
@@ -435,7 +421,7 @@
   </gazebo>
 
   <!-- ============================================================ -->
-  <!-- Cable segments - chain from connector outward to free end    -->
+  <!-- Cable segments - chain from connector down to anchor         -->
   <!-- ============================================================ -->
 
   <!-- Cable segment macro with 2-DOF (roll + pitch) -->
@@ -445,21 +431,21 @@
       <parent link="${parent_link}"/>
       <child link="cable_roll_link_${index}"/>
       <xacro:if value="${is_first}">
-        <!-- First segment: start behind connector, cable extends backward -->
+        <!-- First segment: start behind connector, cable extends backward/down -->
         <origin xyz="0 0 -0.01" rpy="${pi} 0 0"/>
       </xacro:if>
       <xacro:unless value="${is_first}">
         <origin xyz="0 0 ${segment_length}" rpy="0 0 0"/>
       </xacro:unless>
       <axis xyz="1 0 0"/>
-      <dynamics damping="5.0" friction="0.1"/>
+      <dynamics damping="0.005" friction="0.001"/>
     </joint>
 
-    <!-- Invisible roll link -->
+    <!-- Invisible roll link (minimal mass, just for joint) -->
     <link name="cable_roll_link_${index}">
       <inertial>
-        <mass value="0.002"/>
-        <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+        <mass value="0.001"/>
+        <inertia ixx="1e-8" ixy="0" ixz="0" iyy="1e-8" iyz="0" izz="1e-8"/>
       </inertial>
     </link>
 
@@ -469,7 +455,7 @@
       <child link="cable_segment_${index}"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <axis xyz="0 1 0"/>
-      <dynamics damping="5.0" friction="0.1"/>
+      <dynamics damping="0.005" friction="0.001"/>
     </joint>
 
     <!-- Visible cable segment -->
@@ -486,7 +472,8 @@
       <inertial>
         <mass value="${segment_mass}"/>
         <origin xyz="0 0 ${segment_length/2}"/>
-        <inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-5"/>
+        <!-- Proper inertia for small cylinder: Ixx=Iyy≈2e-6, Izz≈1e-7 -->
+        <inertia ixx="2e-6" ixy="0" ixz="0" iyy="2e-6" iyz="0" izz="1e-7"/>
       </inertial>
     </link>
 
@@ -497,8 +484,7 @@
     </gazebo>
   </xacro:macro>
 
-  <!-- Generate 25 cable segments from connector outward -->
-  <!-- No initial pitch - let gravity naturally drape the cable -->
+  <!-- Generate 15 cable segments from connector toward table -->
   <xacro:cable_segment_2dof index="0" parent_link="connector_grip" is_first="true"/>
   <xacro:cable_segment_2dof index="1" parent_link="cable_segment_0"/>
   <xacro:cable_segment_2dof index="2" parent_link="cable_segment_1"/>
@@ -514,33 +500,25 @@
   <xacro:cable_segment_2dof index="12" parent_link="cable_segment_11"/>
   <xacro:cable_segment_2dof index="13" parent_link="cable_segment_12"/>
   <xacro:cable_segment_2dof index="14" parent_link="cable_segment_13"/>
-  <xacro:cable_segment_2dof index="15" parent_link="cable_segment_14"/>
-  <xacro:cable_segment_2dof index="16" parent_link="cable_segment_15"/>
-  <xacro:cable_segment_2dof index="17" parent_link="cable_segment_16"/>
-  <xacro:cable_segment_2dof index="18" parent_link="cable_segment_17"/>
-  <xacro:cable_segment_2dof index="19" parent_link="cable_segment_18"/>
-  <xacro:cable_segment_2dof index="20" parent_link="cable_segment_19"/>
-  <xacro:cable_segment_2dof index="21" parent_link="cable_segment_20"/>
-  <xacro:cable_segment_2dof index="22" parent_link="cable_segment_21"/>
-  <xacro:cable_segment_2dof index="23" parent_link="cable_segment_22"/>
-  <xacro:cable_segment_2dof index="24" parent_link="cable_segment_23"/>
 
-  <!-- Cable anchor/weight at free end - heavy to stay on table -->
+  <!-- ============================================================ -->
+  <!-- Cable Anchor - Heavy weight at end (rests on table)          -->
+  <!-- ============================================================ -->
   <link name="cable_anchor">
     <visual>
-      <geometry><cylinder radius="0.025" length="0.02"/></geometry>
+      <geometry><cylinder radius="0.03" length="0.025"/></geometry>
       <material name="anchor_dark"><color rgba="0.3 0.3 0.3 1"/></material>
     </visual>
     <collision>
-      <geometry><cylinder radius="0.025" length="0.02"/></geometry>
+      <geometry><cylinder radius="0.03" length="0.025"/></geometry>
     </collision>
     <inertial>
-      <mass value="0.5"/>
-      <inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-4"/>
+      <mass value="1.0"/>  <!-- Heavy anchor to pull cable down -->
+      <inertia ixx="2e-4" ixy="0" ixz="0" iyy="2e-4" iyz="0" izz="2e-4"/>
     </inertial>
   </link>
   <joint name="cable_anchor_joint" type="fixed">
-    <parent link="cable_segment_24"/>
+    <parent link="cable_segment_14"/>
     <child link="cable_anchor"/>
     <origin xyz="0 0 ${segment_length}" rpy="0 0 0"/>
   </joint>
