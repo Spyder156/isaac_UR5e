@@ -80,15 +80,16 @@ class RobotMover(Node):
         self.get_logger().info(f'Gripper set to {position}')
 
     def run_test_sequence(self):
-        """Run a test sequence to move the robot and observe cable physics."""
+        """Run a test sequence to move the robot and observe cable physics.
+        Gripper stays closed throughout to hold the cable connector."""
 
         self.get_logger().info('=' * 50)
         self.get_logger().info('Starting robot movement test')
-        self.get_logger().info('Watch the cable to verify physics!')
+        self.get_logger().info('Cable is attached to gripper - watch it move!')
         self.get_logger().info('=' * 50)
 
-        # Home position (arm up)
-        home = [0.0, -math.pi/2, 0.0, -math.pi/2, 0.0, 0.0]
+        # Home position (lowered working position matching initial pose)
+        home = [0.0, -2.0, 1.5, -1.07, -math.pi/2, 0.0]
 
         # Position 1: Reach forward and down
         pos1 = [0.0, -math.pi/3, math.pi/3, -math.pi/2, -math.pi/2, 0.0]
@@ -99,18 +100,19 @@ class RobotMover(Node):
         # Position 3: Sweep to other side
         pos3 = [-math.pi/4, -math.pi/3, math.pi/3, -math.pi/2, -math.pi/2, 0.0]
 
-        # Position 4: Reach toward cable anchor area
+        # Position 4: Reach toward one area
         pos4 = [math.pi/2, -math.pi/4, math.pi/4, -math.pi/2, -math.pi/2, 0.0]
 
         # Position 5: Reach toward socket board
         pos5 = [-math.pi/4, -math.pi/4, math.pi/3, -math.pi/3, -math.pi/2, 0.0]
 
+        # Ensure gripper is closed to hold the cable
+        self.get_logger().info('\n>>> Ensuring gripper is closed (holding cable)...')
+        self.set_gripper(0.005)
+        time.sleep(0.5)
+
         self.get_logger().info('\n>>> Moving to home position...')
         self.send_arm_trajectory([home], [3.0])
-        time.sleep(1)
-
-        self.get_logger().info('\n>>> Opening gripper...')
-        self.set_gripper(0.025)
         time.sleep(1)
 
         self.get_logger().info('\n>>> Moving forward and down (pos1)...')
@@ -125,12 +127,8 @@ class RobotMover(Node):
         self.send_arm_trajectory([pos3], [3.0])
         time.sleep(1)
 
-        self.get_logger().info('\n>>> Reaching toward cable area (pos4)...')
+        self.get_logger().info('\n>>> Reaching position 4 (pos4)...')
         self.send_arm_trajectory([pos4], [3.0])
-        time.sleep(1)
-
-        self.get_logger().info('\n>>> Closing gripper (simulating grab)...')
-        self.set_gripper(0.005)
         time.sleep(1)
 
         self.get_logger().info('\n>>> Moving toward socket (pos5)...')
@@ -141,11 +139,9 @@ class RobotMover(Node):
         self.send_arm_trajectory([home], [4.0])
         time.sleep(1)
 
-        self.get_logger().info('\n>>> Opening gripper...')
-        self.set_gripper(0.025)
-
         self.get_logger().info('=' * 50)
         self.get_logger().info('Test sequence complete!')
+        self.get_logger().info('Gripper remained closed throughout.')
         self.get_logger().info('=' * 50)
 
 
