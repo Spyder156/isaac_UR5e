@@ -2,11 +2,17 @@
 <sdf version="1.9">
   <world name="cable_insertion_world">
 
-    <!-- Physics settings -->
+    <!-- Physics settings - smaller step for cable stability -->
     <physics name="default_physics" type="dart">
-      <max_step_size>0.002</max_step_size>
+      <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
-      <real_time_update_rate>500</real_time_update_rate>
+      <real_time_update_rate>1000</real_time_update_rate>
+      <dart>
+        <collision_detector>bullet</collision_detector>
+        <solver>
+          <solver_type>pgs</solver_type>
+        </solver>
+      </dart>
     </physics>
 
     <!-- gz-sim plugins -->
@@ -55,6 +61,9 @@
                 <mu2>1.0</mu2>
               </ode>
             </friction>
+            <contact>
+              <collide_bitmask>0xffff</collide_bitmask>
+            </contact>
           </surface>
         </collision>
         <visual name="visual">
@@ -101,6 +110,9 @@
                 <mu2>1.0</mu2>
               </ode>
             </friction>
+            <contact>
+              <collide_bitmask>0xffff</collide_bitmask>
+            </contact>
           </surface>
         </collision>
       </link>
