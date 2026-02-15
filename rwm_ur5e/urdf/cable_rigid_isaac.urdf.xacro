@@ -1,0 +1,162 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="cable_rigid_isaac">
+  <!-- ============================================================ -->
+  <!-- Rigid-Segment Cable for Isaac Sim                            -->
+  <!-- 15 segments with 2-DOF joints (roll + pitch)                 -->
+  <!-- No Gazebo tags - clean for URDF-to-USD conversion            -->
+  <!-- ============================================================ -->
+
+  <!-- Cable parameters -->
+  <xacro:property name="cable_radius" value="0.005"/>
+  <xacro:property name="cable_length" value="0.9"/>
+  <xacro:property name="num_segments" value="15"/>
+  <xacro:property name="segment_length" value="${cable_length / num_segments}"/>
+  <xacro:property name="segment_mass" value="0.02"/>
+  <xacro:property name="cable_bend_angle" value="0.21"/>
+
+  <!-- USB-like connector dimensions -->
+  <xacro:property name="plug_width" value="0.011"/>
+  <xacro:property name="plug_height" value="0.003"/>
+  <xacro:property name="plug_length" value="0.022"/>
+
+  <!-- World link (root) -->
+  <link name="world"/>
+
+  <!-- Cable anchor - fixed to world -->
+  <link name="cable_anchor">
+    <visual>
+      <geometry><cylinder radius="0.008" length="0.005"/></geometry>
+      <material name="anchor_dark"><color rgba="0.3 0.3 0.3 1"/></material>
+    </visual>
+    <collision>
+      <geometry><cylinder radius="0.008" length="0.005"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/>
+    </inertial>
+  </link>
+  <joint name="cable_anchor_joint" type="fixed">
+    <parent link="world"/>
+    <child link="cable_anchor"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Cable segment macro with 2-DOF (roll + pitch) -->
+  <xacro:macro name="cable_segment_2dof" params="index parent_link is_first:=false">
+    <!-- Roll joint (X-axis rotation) -->
+    <joint name="cable_roll_${index}" type="revolute">
+      <parent link="${parent_link}"/>
+      <child link="cable_roll_link_${index}"/>
+      <xacro:if value="${is_first}">
+        <origin xyz="0 0 0.004" rpy="0 ${cable_bend_angle} 0"/>
+      </xacro:if>
+      <xacro:unless value="${is_first}">
+        <origin xyz="0 0 ${segment_length}" rpy="0 ${cable_bend_angle} 0"/>
+      </xacro:unless>
+      <axis xyz="1 0 0"/>
+      <limit lower="-3.14" upper="3.14" effort="10" velocity="10"/>
+      <dynamics damping="0.0001" friction="0.0"/>
+    </joint>
+
+    <!-- Invisible roll link -->
+    <link name="cable_roll_link_${index}">
+      <inertial>
+        <mass value="0.001"/>
+        <inertia ixx="1e-9" ixy="0" ixz="0" iyy="1e-9" iyz="0" izz="1e-9"/>
+      </inertial>
+    </link>
+
+    <!-- Pitch joint (Y-axis rotation) -->
+    <joint name="cable_pitch_${index}" type="revolute">
+      <parent link="cable_roll_link_${index}"/>
+      <child link="cable_segment_${index}"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="-3.14" upper="3.14" effort="10" velocity="10"/>
+      <dynamics damping="0.0001" friction="0.0"/>
+    </joint>
+
+    <!-- Visible cable segment -->
+    <link name="cable_segment_${index}">
+      <visual>
+        <origin xyz="0 0 ${segment_length/2}"/>
+        <geometry><cylinder radius="${cable_radius}" length="${segment_length}"/></geometry>
+        <material name="cable_orange"><color rgba="0.95 0.5 0.1 1"/></material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${segment_length/2}"/>
+        <geometry><cylinder radius="${cable_radius}" length="${segment_length}"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="${segment_mass}"/>
+        <origin xyz="0 0 ${segment_length/2}"/>
+        <inertia ixx="2e-6" ixy="0" ixz="0" iyy="2e-6" iyz="0" izz="1e-7"/>
+      </inertial>
+    </link>
+  </xacro:macro>
+
+  <!-- Generate 15 cable segments -->
+  <xacro:cable_segment_2dof index="0" parent_link="cable_anchor" is_first="true"/>
+  <xacro:cable_segment_2dof index="1" parent_link="cable_segment_0"/>
+  <xacro:cable_segment_2dof index="2" parent_link="cable_segment_1"/>
+  <xacro:cable_segment_2dof index="3" parent_link="cable_segment_2"/>
+  <xacro:cable_segment_2dof index="4" parent_link="cable_segment_3"/>
+  <xacro:cable_segment_2dof index="5" parent_link="cable_segment_4"/>
+  <xacro:cable_segment_2dof index="6" parent_link="cable_segment_5"/>
+  <xacro:cable_segment_2dof index="7" parent_link="cable_segment_6"/>
+  <xacro:cable_segment_2dof index="8" parent_link="cable_segment_7"/>
+  <xacro:cable_segment_2dof index="9" parent_link="cable_segment_8"/>
+  <xacro:cable_segment_2dof index="10" parent_link="cable_segment_9"/>
+  <xacro:cable_segment_2dof index="11" parent_link="cable_segment_10"/>
+  <xacro:cable_segment_2dof index="12" parent_link="cable_segment_11"/>
+  <xacro:cable_segment_2dof index="13" parent_link="cable_segment_12"/>
+  <xacro:cable_segment_2dof index="14" parent_link="cable_segment_13"/>
+
+  <!-- Connector grip section -->
+  <link name="connector_grip">
+    <visual>
+      <origin xyz="0 0 0.01"/>
+      <geometry><box size="0.014 0.010 0.02"/></geometry>
+      <material name="grip_orange"><color rgba="0.9 0.5 0.1 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.01"/>
+      <geometry><box size="0.014 0.010 0.02"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.02"/>
+      <origin xyz="0 0 0.01"/>
+      <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/>
+    </inertial>
+  </link>
+  <joint name="connector_grip_joint" type="fixed">
+    <parent link="cable_segment_14"/>
+    <child link="connector_grip"/>
+    <origin xyz="0 0 ${segment_length}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- USB-like plug tip -->
+  <link name="cable_connector">
+    <visual>
+      <origin xyz="0 0 ${plug_length/2}"/>
+      <geometry><box size="${plug_width} ${plug_height} ${plug_length}"/></geometry>
+      <material name="connector_metal"><color rgba="0.75 0.75 0.78 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${plug_length/2}"/>
+      <geometry><box size="${plug_width} ${plug_height} ${plug_length}"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.01"/>
+      <origin xyz="0 0 ${plug_length/2}"/>
+      <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/>
+    </inertial>
+  </link>
+  <joint name="connector_tip_joint" type="fixed">
+    <parent link="connector_grip"/>
+    <child link="cable_connector"/>
+    <origin xyz="0 0 0.02" rpy="0 0 0"/>
+  </joint>
+
+</robot>

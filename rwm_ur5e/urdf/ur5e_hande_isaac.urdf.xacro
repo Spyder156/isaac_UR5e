@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="ur5e_hande_isaac">
+  <!-- ============================================================ -->
+  <!-- UR5e + Robotiq Hand-E for Isaac Sim                          -->
+  <!-- Clean URDF: no Gazebo, no ros2_control, no sensors           -->
+  <!-- ============================================================ -->
+
+  <link name="world"/>
+
+  <!-- UR5e Robot -->
+  <xacro:include filename="$(find ur_description)/urdf/ur_macro.xacro"/>
+
+  <xacro:ur_robot
+    name="ur5e"
+    tf_prefix=""
+    parent="world"
+    joint_limits_parameters_file="$(find ur_description)/config/ur5e/joint_limits.yaml"
+    kinematics_parameters_file="$(find ur_description)/config/ur5e/default_kinematics.yaml"
+    physical_parameters_file="$(find ur_description)/config/ur5e/physical_parameters.yaml"
+    visual_parameters_file="$(find ur_description)/config/ur5e/visual_parameters.yaml"
+  >
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:ur_robot>
+
+  <!-- Robotiq Hand-E Gripper -->
+  <xacro:include filename="$(find gazebo_cable_env)/urdf/robotiq_hande_sim.xacro"/>
+
+  <xacro:robotiq_hande_sim prefix="" parent="tool0">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_hande_sim>
+
+</robot>
