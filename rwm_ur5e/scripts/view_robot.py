@@ -263,10 +263,9 @@ def design_scene() -> dict:
             ),
         ),
         init_state=ArticulationCfg.InitialStateCfg(
-            # Anchor on table to the right, cable lying flat toward robot
-            # Rotate 90° around Y so cable's local +Z extends in world -X direction
-            pos=(0.4, -0.15, TABLE_SURFACE_Z + 0.01),
-            rot=(0.7071, 0.0, 0.7071, 0.0),  # 90° around Y-axis
+            # Anchor fixed to table surface; cable starts upright (+Z),
+            # gravity pulls the connector end down onto the table.
+            pos=(0.2, -0.1, TABLE_SURFACE_Z + 0.005),
         ),
         actuators={},
     )
@@ -281,7 +280,7 @@ def design_scene() -> dict:
     # Positions: Top (+Y=up), Left (+X=left), Right (-X=right)
 
     cam_spawn = sim_utils.PinholeCameraCfg(
-        focal_length=24.0,
+        focal_length=12.0,       # Wide-angle (was 24) — broader workspace view
         focus_distance=400.0,
         horizontal_aperture=20.955,
         clipping_range=(0.01, 2.0),
