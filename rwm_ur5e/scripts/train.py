@@ -27,8 +27,8 @@ parser.add_argument("--quiet", "-q", action="store_true", help="Use progress bar
 AppLauncher.add_app_launcher_args(parser)
 args_cli = parser.parse_args()
 
-# Enable cameras if recording video
-if args_cli.video:
+# Enable cameras if recording video or using vision task
+if args_cli.video or "CableReach" in args_cli.task:
     args_cli.enable_cameras = True
 
 # Launch Isaac Sim
@@ -51,11 +51,17 @@ from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
 from rwm_ur5e.envs import register_tasks
 register_tasks()
 
-# Import environment config (requires Isaac Sim)
+# Import environment configs (requires Isaac Sim)
 from rwm_ur5e.configs.ur5e_reach_cfg import UR5eReachEnvCfg
+from rwm_ur5e.configs.ur5e_cable_reach_cfg import UR5eCableReachEnvCfg
 
-# Import agent config (no Isaac Sim required, already imported structure)
-from rwm_ur5e.configs import UR5eReachRWMRunnerCfg
+# Import agent configs
+from rwm_ur5e.configs import UR5eReachRWMRunnerCfg, UR5eCableReachRWMRunnerCfg
+
+# Import VisualActorCritic and inject into runner module so eval() finds it
+from rwm_ur5e.modules.visual_actor_critic import VisualActorCritic
+import rsl_rl.runners.mbpo_on_policy_runner as _mbpo_runner
+_mbpo_runner.VisualActorCritic = VisualActorCritic
 
 # Enable TF32 for faster training
 torch.backends.cuda.matmul.allow_tf32 = True
@@ -111,13 +117,21 @@ class ProgressBarLogger:
 
 
 def main():
-    # Environment config
-    env_cfg = UR5eReachEnvCfg()
+    # Select configs based on task
+    is_cable_task = "CableReach" in args_cli.task
+
+    if is_cable_task:
+        env_cfg = UR5eCableReachEnvCfg()
+        agent_cfg = UR5eCableReachRWMRunnerCfg()
+        # Auto-enable cameras for vision tasks
+        if not getattr(args_cli, 'enable_cameras', False):
+            print("[INFO] Auto-enabling cameras for vision task")
+    else:
+        env_cfg = UR5eReachEnvCfg()
+        agent_cfg = UR5eReachRWMRunnerCfg()
+
     env_cfg.scene.num_envs = args_cli.num_envs
     env_cfg.seed = args_cli.seed
-    
-    # Agent config
-    agent_cfg = UR5eReachRWMRunnerCfg()
     agent_cfg.seed = args_cli.seed
     agent_cfg.max_iterations = args_cli.max_iterations
     
