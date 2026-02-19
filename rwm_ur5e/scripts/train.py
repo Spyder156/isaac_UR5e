@@ -28,7 +28,7 @@ AppLauncher.add_app_launcher_args(parser)
 args_cli = parser.parse_args()
 
 # Enable cameras if recording video or using vision task
-if args_cli.video or "CableReach" in args_cli.task:
+if args_cli.video or "Cable" in args_cli.task:
     args_cli.enable_cameras = True
 
 # Launch Isaac Sim
@@ -54,9 +54,10 @@ register_tasks()
 # Import environment configs (requires Isaac Sim)
 from rwm_ur5e.configs.ur5e_reach_cfg import UR5eReachEnvCfg
 from rwm_ur5e.configs.ur5e_cable_reach_cfg import UR5eCableReachEnvCfg
+from rwm_ur5e.configs.ur5e_cable_plug_cfg import UR5eCablePlugEnvCfg
 
 # Import agent configs
-from rwm_ur5e.configs import UR5eReachRWMRunnerCfg, UR5eCableReachRWMRunnerCfg
+from rwm_ur5e.configs import UR5eReachRWMRunnerCfg, UR5eCableReachRWMRunnerCfg, UR5eCablePlugRWMRunnerCfg
 
 # Import VisualActorCritic and inject into runner module so eval() finds it
 from rwm_ur5e.modules.visual_actor_critic import VisualActorCritic
@@ -118,14 +119,15 @@ class ProgressBarLogger:
 
 def main():
     # Select configs based on task
-    is_cable_task = "CableReach" in args_cli.task
+    is_plug_task = "CablePlug" in args_cli.task
+    is_cable_reach_task = "CableReach" in args_cli.task
 
-    if is_cable_task:
+    if is_plug_task:
+        env_cfg = UR5eCablePlugEnvCfg()
+        agent_cfg = UR5eCablePlugRWMRunnerCfg()
+    elif is_cable_reach_task:
         env_cfg = UR5eCableReachEnvCfg()
         agent_cfg = UR5eCableReachRWMRunnerCfg()
-        # Auto-enable cameras for vision tasks
-        if not getattr(args_cli, 'enable_cameras', False):
-            print("[INFO] Auto-enabling cameras for vision task")
     else:
         env_cfg = UR5eReachEnvCfg()
         agent_cfg = UR5eReachRWMRunnerCfg()
