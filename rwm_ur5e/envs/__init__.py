@@ -58,6 +58,28 @@ def register_tasks():
         },
     )
 
+    # --- Cable Plug (grasp + insert, vision-based) ---
+    from rwm_ur5e.configs.ur5e_cable_plug_cfg import (
+        UR5eCablePlugEnvCfg,
+        UR5eCablePlugEnvCfg_PLAY,
+    )
+    gym.register(
+        id="RWM-UR5e-CablePlug-v0",
+        entry_point="rwm_ur5e.envs.ur5e_cable_plug_env:UR5eCablePlugEnv",
+        disable_env_checker=True,
+        kwargs={
+            "cfg": UR5eCablePlugEnvCfg(),
+        },
+    )
+    gym.register(
+        id="RWM-UR5e-CablePlug-Play-v0",
+        entry_point="rwm_ur5e.envs.ur5e_cable_plug_env:UR5eCablePlugEnv",
+        disable_env_checker=True,
+        kwargs={
+            "cfg": UR5eCablePlugEnvCfg_PLAY(),
+        },
+    )
+
     print("[INFO] Registered RWM UR5e gym tasks")
 
 __all__ = ["register_tasks"]
