@@ -260,29 +260,31 @@ class UR5eCableReachRWMRunnerCfg:
         self.clip_actions = 1.0
         self.device = "cuda:0"
 
-        # Observation groups: policy uses proprio + images, critic same
+        # Observation groups: policy uses proprio + images + camera poses, critic same
         self.obs_groups = {
-            "policy": ["policy", "policy_image"],
-            "critic": ["policy", "policy_image"],
+            "policy": ["policy", "policy_image", "camera_poses"],
+            "critic": ["policy", "policy_image", "camera_poses"],
         }
 
         self.resume = False
         self.load_run = None
         self.load_checkpoint = None
 
-        # Policy: VisualActorCritic with CNN encoder
+        # Policy: VisualActorCritic with frozen DINOv2 encoder
         self.policy = {
             "class_name": "VisualActorCritic",
             "init_noise_std": 1.0,
             "actor_hidden_dims": [256, 256, 256],
             "critic_hidden_dims": [256, 256, 256],
             "activation": "elu",
-            # CNN-specific params
+            # DINOv2 vision params
             "num_cameras": 3,
             "image_height": 64,
             "image_width": 64,
             "image_channels": 3,
-            "cnn_embedding_dim": 64,
+            "dino_model": "dinov2_vits14",
+            "dino_input_size": 98,
+            "dino_embedding_dim": 128,
         }
 
         # System dynamics: proprioception only (15D state)
@@ -297,9 +299,9 @@ class UR5eCableReachRWMRunnerCfg:
             action_normalizer=RslRlNormalizerCfg(mean=[0.0] * 6, std=[1.0] * 6),
         )
 
-        # Algorithm config (lower LR for CNN stability)
+        # Algorithm config (lower LR — only projection head + MLP are trainable)
         self.algorithm = RslRlMbrlPpoAlgorithmCfg(
-            policy_learning_rate=1e-4,
+            policy_learning_rate=3e-5,
         )
 
         self.load_system_dynamics = False
