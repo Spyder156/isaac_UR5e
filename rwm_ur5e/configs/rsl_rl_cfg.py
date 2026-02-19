@@ -217,6 +217,8 @@ class UR5eReachRWMRunnerCfg:
                 result[k] = v
         return result
 
+    # end UR5eReachRWMRunnerCfg
+
 
 class UR5eReachFinetuneRunnerCfg(UR5eReachRWMRunnerCfg):
     def __init__(self):
@@ -310,6 +312,83 @@ class UR5eCableReachRWMRunnerCfg:
         self.system_dynamics_num_visualizations = 4
 
         # State dimension labels for plotting (no target info)
+        self.system_dynamics_state_idx_dict = {
+            r"$q$ [rad]": [0, 1, 2, 3, 4, 5],
+            r"$\dot{q}$ [rad/s]": [6, 7, 8, 9, 10, 11],
+            r"$ee$ [m]": [12, 13, 14],
+        }
+
+        self.pca_obs_buf_size = 10000
+
+    def to_dict(self) -> dict:
+        result = {}
+        for k, v in self.__dict__.items():
+            if hasattr(v, 'to_dict'):
+                result[k] = v.to_dict()
+            else:
+                result[k] = v
+        return result
+
+
+class UR5eCablePlugRWMRunnerCfg:
+    """Runner config for vision-based cable plug (grasp + insert) task."""
+
+    def __init__(self):
+        self.class_name = "MBPOOnPolicyRunner"
+        self.experiment_name = "ur5e_cable_plug"
+        self.run_name = "rwm_vision"
+        self.seed = 42
+
+        self.num_steps_per_env = 32
+        self.max_iterations = 5000
+        self.save_interval = 200
+        self.empirical_normalization = False
+        self.clip_actions = 1.0
+        self.device = "cuda:0"
+
+        self.obs_groups = {
+            "policy": ["policy", "policy_image", "camera_poses"],
+            "critic": ["policy", "policy_image", "camera_poses"],
+        }
+
+        self.resume = False
+        self.load_run = None
+        self.load_checkpoint = None
+
+        self.policy = {
+            "class_name": "VisualActorCritic",
+            "init_noise_std": 1.0,
+            "actor_hidden_dims": [256, 256, 256],
+            "critic_hidden_dims": [256, 256, 256],
+            "activation": "elu",
+            "num_cameras": 3,
+            "image_height": 64,
+            "image_width": 64,
+            "image_channels": 3,
+            "dino_model": "dinov2_vits14",
+            "dino_input_size": 98,
+            "dino_embedding_dim": 128,
+        }
+
+        self.system_dynamics = RslRlSystemDynamicsCfg()
+
+        self.imagination = RslRlMbrlImaginationCfg(
+            num_envs=0,
+            num_steps_per_env=0,
+            max_episode_length=0,
+            state_normalizer=RslRlNormalizerCfg(mean=[0.0] * 15, std=[1.0] * 15),
+            action_normalizer=RslRlNormalizerCfg(mean=[0.0] * 7, std=[1.0] * 7),
+        )
+
+        self.algorithm = RslRlMbrlPpoAlgorithmCfg(
+            policy_learning_rate=3e-5,
+        )
+
+        self.load_system_dynamics = False
+        self.system_dynamics_load_path = None
+        self.system_dynamics_warmup_iterations = 0
+        self.system_dynamics_num_visualizations = 4
+
         self.system_dynamics_state_idx_dict = {
             r"$q$ [rad]": [0, 1, 2, 3, 4, 5],
             r"$\dot{q}$ [rad/s]": [6, 7, 8, 9, 10, 11],
