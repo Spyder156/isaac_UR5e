@@ -22,6 +22,7 @@ from isaaclab.assets import Articulation
 from isaaclab.envs import DirectRLEnv
 from isaaclab.sensors import TiledCamera
 from isaaclab.sim.spawners.from_files import spawn_ground_plane
+from isaaclab.utils.math import quat_apply
 
 from rwm_ur5e.configs.ur5e_cable_reach_cfg import UR5eCableReachEnvCfg
 
@@ -246,6 +247,23 @@ class UR5eCableReachEnv(DirectRLEnv):
             img_right.reshape(self.num_envs, -1),
         ], dim=-1)
 
+        # Camera world poses: position (local frame) + forward vector per camera
+        # Forward vector = rotate [0,0,1] by camera quaternion (ROS convention: Z forward)
+        z_axis = torch.tensor([0.0, 0.0, 1.0], device=self.device).expand(self.num_envs, -1)
+
+        cam_top_pos = self._cam_top.data.pos_w - self.scene.env_origins
+        cam_top_fwd = quat_apply(self._cam_top.data.quat_w_ros, z_axis)
+        cam_left_pos = self._cam_left.data.pos_w - self.scene.env_origins
+        cam_left_fwd = quat_apply(self._cam_left.data.quat_w_ros, z_axis)
+        cam_right_pos = self._cam_right.data.pos_w - self.scene.env_origins
+        cam_right_fwd = quat_apply(self._cam_right.data.quat_w_ros, z_axis)
+
+        camera_poses = torch.cat([
+            cam_top_pos, cam_top_fwd,
+            cam_left_pos, cam_left_fwd,
+            cam_right_pos, cam_right_fwd,
+        ], dim=-1)  # (N, 18)
+
         return {
             "policy": torch.cat([
                 joint_pos,           # 6
@@ -254,6 +272,7 @@ class UR5eCableReachEnv(DirectRLEnv):
                 self._last_action,   # 6
             ], dim=-1),              # total: 21
             "policy_image": images,  # (N, 3*64*64*3) = (N, 36864)
+            "camera_poses": camera_poses,  # (N, 18)
             "system_state": torch.cat([
                 joint_pos,           # 6
                 joint_vel,           # 6
